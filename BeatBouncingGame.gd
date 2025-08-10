@@ -1,16 +1,16 @@
 extends Node2D
 
-# Beat-synchronized bouncing particles using MultiMeshInstance2D
-class_name BeatBouncingGame
+# Simple bouncing particles using MultiMeshInstance2D
+class_name SimpleBouncingGame
 
 @export var particle_count: int = 100
-@export var beat_interval: float = 0.5
-@export var bounce_force: float = 200.0
 @export var gravity: float = 500.0
+@export var gravity_enabled: bool = true
 @export var box_size: Vector2 = Vector2(800, 600)
 @export var particle_size: float = 8.0
 @export var particle_color: Color = Color.WHITE
 @export var max_velocity: float = 400.0
+@export var bounce_factor: float = 0.8
 
 var multimesh_instance: MultiMeshInstance2D
 var particles_data: Array[ParticleData]
@@ -26,11 +26,7 @@ class ParticleData:
 func _ready():
 	setup_multimesh()
 	setup_particles()
-	
-	# Connect to MusicManager beat signal
-	if MusicManager:
-		MusicManager.beat_detected.connect(trigger_beat)
-	
+
 func setup_multimesh():
 	# Create MultiMeshInstance2D with colored quads
 	multimesh_instance = MultiMeshInstance2D.new()
@@ -38,7 +34,7 @@ func setup_multimesh():
 	
 	var multimesh = MultiMesh.new()
 	multimesh.transform_format = MultiMesh.TRANSFORM_2D
-	multimesh.use_colors = true  # Enable color support
+	multimesh.use_colors = true
 	multimesh.instance_count = particle_count
 	
 	var quad_mesh = QuadMesh.new()
@@ -50,6 +46,11 @@ func setup_multimesh():
 func setup_particles():
 	# Initialize particles with random positions and velocities
 	particles_data.clear()
+	
+	# Update multimesh instance count
+	if multimesh_instance and multimesh_instance.multimesh:
+		multimesh_instance.multimesh.instance_count = particle_count
+	
 	for i in range(particle_count):
 		var particle_data = ParticleData.new(
 			Vector2(randf_range(particle_size, box_size.x - particle_size),
@@ -62,16 +63,12 @@ func _process(delta):
 	update_particles(delta)
 	update_multimesh()
 
-func trigger_beat():
-	# Apply upward bounce force to all particles
-	for particle_data in particles_data:
-		particle_data.velocity.y -= bounce_force
-
 func update_particles(delta):
 	# Update physics for each particle
 	for particle_data in particles_data:
-		# Apply gravity and update position
-		particle_data.velocity.y += gravity * delta
+		# Apply gravity if enabled
+		if gravity_enabled:
+			particle_data.velocity.y += gravity * delta
 		
 		# Limit velocity to max_velocity
 		if particle_data.velocity.length() > max_velocity:
@@ -83,27 +80,29 @@ func update_particles(delta):
 		handle_wall_collision(particle_data)
 
 func handle_wall_collision(particle_data: ParticleData):
-	# Bounce off walls with energy loss
+	# Bounce off walls with configurable energy loss
 	var half_size = particle_size * 0.5
 	
 	if particle_data.position.x <= half_size:
 		particle_data.position.x = half_size
-		particle_data.velocity.x = abs(particle_data.velocity.x) * 0.8
+		particle_data.velocity.x = abs(particle_data.velocity.x) * bounce_factor
 	elif particle_data.position.x >= box_size.x - half_size:
 		particle_data.position.x = box_size.x - half_size
-		particle_data.velocity.x = -abs(particle_data.velocity.x) * 0.8
+		particle_data.velocity.x = -abs(particle_data.velocity.x) * bounce_factor
 	
 	if particle_data.position.y <= half_size:
 		particle_data.position.y = half_size
-		particle_data.velocity.y = abs(particle_data.velocity.y) * 0.8
+		particle_data.velocity.y = abs(particle_data.velocity.y) * bounce_factor
 	elif particle_data.position.y >= box_size.y - half_size:
 		particle_data.position.y = box_size.y - half_size
-		particle_data.velocity.y = -abs(particle_data.velocity.y) * 0.8
+		particle_data.velocity.y = -abs(particle_data.velocity.y) * bounce_factor
 
 func update_multimesh():
 	# Update MultiMesh instance transforms and colors
 	var multimesh = multimesh_instance.multimesh
-	for i in range(particle_count):
+	var actual_count = min(particle_count, particles_data.size())
+	
+	for i in range(actual_count):
 		var particle_data = particles_data[i]
 		
 		# Set position transform
@@ -121,8 +120,11 @@ func _draw():
 func set_particle_color(color: Color):
 	particle_color = color
 
-func set_bounce_force(force: float):
-	bounce_force = force
-
 func set_max_velocity(velocity: float):
 	max_velocity = velocity
+
+func set_gravity_enabled(enabled: bool):
+	gravity_enabled = enabled
+
+func set_bounce_factor(factor: float):
+	bounce_factor = factor

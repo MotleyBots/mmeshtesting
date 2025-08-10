@@ -1,14 +1,13 @@
 extends Control
 
-# Test scene controller for beat bouncing game
+# Test scene controller for simple bouncing game
 class_name TestScene
 
-@onready var game: BeatBouncingGame
+@onready var game: SimpleBouncingGame
 @onready var ui_panel: VBoxContainer
-@onready var color_picker: ColorPicker
-@onready var beat_slider: HSlider
-@onready var force_slider: HSlider
+@onready var velocity_slider: HSlider
 @onready var count_slider: HSlider
+@onready var bounce_slider: HSlider
 
 func _ready():
 	setup_game()
@@ -16,13 +15,15 @@ func _ready():
 
 func setup_game():
 	# Create and configure the main game
-	game = BeatBouncingGame.new()
+	game = SimpleBouncingGame.new()
 	game.particle_count = 50
-	game.beat_interval = 0.6
-	game.bounce_force = 300.0
-	game.box_size = Vector2(400, 400)
+	game.gravity = 300.0
+	game.gravity_enabled = true
+	game.box_size = Vector2(700, 500)
 	game.particle_size = 6.0
-	game.particle_color = Color.RED
+	game.particle_color = Color.CYAN
+	game.max_velocity = 400.0
+	game.bounce_factor = 0.8
 	
 	# Position game in center of screen
 	game.position = Vector2(50, 50)
@@ -32,28 +33,24 @@ func setup_ui():
 	# Create UI panel
 	ui_panel = VBoxContainer.new()
 	ui_panel.position = Vector2(800, 50)
-	ui_panel.custom_minimum_size = Vector2(200, 400)
+	ui_panel.custom_minimum_size = Vector2(200, 250)
 	add_child(ui_panel)
 	
-	# Color control
-	create_label("Particle Color:")
-	color_picker = ColorPicker.new()
-	color_picker.color = game.particle_color
-	color_picker.custom_minimum_size = Vector2(180, 200)
-	color_picker.color_changed.connect(_on_color_changed)
-	ui_panel.add_child(color_picker)
+	# Max velocity control
+	create_label("Max Velocity:")
+	velocity_slider = create_slider(100.0, 800.0, game.max_velocity, _on_velocity_changed)
 	
-	# Beat interval control
-	create_label("Beat Interval (seconds):")
-	beat_slider = create_slider(0.1, 2.0, game.beat_interval, _on_beat_changed)
-	
-	# Bounce force control
-	create_label("Bounce Force:")
-	force_slider = create_slider(50.0, 500.0, game.bounce_force, _on_force_changed)
+	# Bounce factor control
+	create_label("Bounce Factor:")
+	bounce_slider = create_slider(0.0, 1.0, game.bounce_factor, _on_bounce_changed)
 	
 	# Particle count control
 	create_label("Particle Count:")
 	count_slider = create_slider(10.0, 200.0, game.particle_count, _on_count_changed)
+	
+	# Gravity toggle
+	create_label("Gravity:")
+	create_gravity_toggle()
 
 func create_label(text: String) -> Label:
 	# Helper to create UI labels
@@ -82,17 +79,29 @@ func create_slider(min_val: float, max_val: float, current_val: float, callback:
 	
 	return slider
 
+func create_gravity_toggle():
+	# Create gravity toggle button
+	var gravity_button = Button.new()
+	gravity_button.text = "Gravity: ON"
+	gravity_button.toggle_mode = true
+	gravity_button.button_pressed = game.gravity_enabled
+	gravity_button.toggled.connect(_on_gravity_toggled)
+	ui_panel.add_child(gravity_button)
+
 # UI callback functions
-func _on_color_changed(color: Color):
-	game.set_particle_color(color)
+func _on_velocity_changed(value: float):
+	game.set_max_velocity(value)
 
-func _on_beat_changed(value: float):
-	game.set_beat_interval(value)
-
-func _on_force_changed(value: float):
-	game.set_bounce_force(value)
+func _on_bounce_changed(value: float):
+	game.set_bounce_factor(value)
 
 func _on_count_changed(value: float):
 	var new_count = int(value)
 	game.particle_count = new_count
 	game.setup_particles()  # Reinitialize with new count
+
+func _on_gravity_toggled(pressed: bool):
+	game.set_gravity_enabled(pressed)
+	# Update button text
+	var button = ui_panel.get_children().filter(func(child): return child is Button and child.toggle_mode)[0]
+	button.text = "Gravity: ON" if pressed else "Gravity: OFF"
