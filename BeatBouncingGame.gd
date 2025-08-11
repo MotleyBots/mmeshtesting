@@ -72,8 +72,15 @@ func setup_particles():
 	update_health_system()
 
 func _process(delta):
+	manage_health()
 	update_particles(delta)
 	update_multimesh()
+
+func manage_health() -> void:
+	if health < particle_count:
+		particle_count = health
+		update_health_system()
+		setup_particles()
 
 func update_particles(delta):
 	# Update physics for each particle
@@ -160,7 +167,7 @@ func update_health_system():
 	health = clamp(health, 0, max_health)
 	
 	# If health hasn't been initialized, set to max
-	if health == 0:
+	if not health:
 		health = max_health
 
 func _draw():
