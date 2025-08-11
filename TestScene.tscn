@@ -1,6 +1,10 @@
-[gd_scene load_steps=2 format=3 uid="uid://bop7en522wvfm"]
+[gd_scene load_steps=3 format=3 uid="uid://bop7en522wvfm"]
 
 [ext_resource type="Script" uid="uid://d3w7wtt0q7ep3" path="res://test_scene.gd" id="1_mncer"]
+
+[sub_resource type="Environment" id="Environment_mncer"]
+background_mode = 3
+glow_enabled = true
 
 [node name="TestScene" type="Control"]
 layout_mode = 3
@@ -10,3 +14,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_mncer")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_mncer")

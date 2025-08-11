@@ -24,7 +24,8 @@ func setup_game():
 	game.particle_size = 6.0
 	game.particle_color = Color.CYAN
 	game.max_velocity = 400.0
-	game.bounce_factor = 0.8
+	game.bounce_factor = 1.0
+	game.emissive_strength = 2.0
 	
 	# Position game in center of screen
 	game.position = Vector2(50, 50)
