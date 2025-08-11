@@ -12,6 +12,14 @@ class_name SimpleBouncingGame
 @export var max_velocity: float = 400.0
 @export var bounce_factor: float = 0.8
 
+var max_health: int
+var health: int
+
+# Health-based colors
+var color1: Color = Color.GREEN     # Green (healthy)
+var color2: Color = Color.YELLOW    # Yellow (warning)
+var color3: Color = Color.RED       # Red (critical)
+
 var multimesh_instance: MultiMeshInstance2D
 var particles_data: Array[ParticleData]
 
@@ -26,6 +34,7 @@ class ParticleData:
 func _ready():
 	setup_multimesh()
 	setup_particles()
+	update_health_system()
 
 func setup_multimesh():
 	# Create MultiMeshInstance2D with colored quads
@@ -58,6 +67,9 @@ func setup_particles():
 			Vector2(randf_range(-100, 100), randf_range(-100, 100))
 		)
 		particles_data.append(particle_data)
+	
+	# Update health system when particle count changes
+	update_health_system()
 
 func _process(delta):
 	update_particles(delta)
@@ -109,8 +121,47 @@ func update_multimesh():
 		var transform = Transform2D().translated(particle_data.position)
 		multimesh.set_instance_transform_2d(i, transform)
 		
-		# Set color
+		# Set color based on health
+		var particle_color = get_particle_color(i)
 		multimesh.set_instance_color(i, particle_color)
+
+func get_particle_color(particle_index: int) -> Color:
+	# Calculate color distribution based on health
+	if health == max_health:
+		return color1
+	
+	var health_ratio = float(health) / float(max_health)
+	
+	if health_ratio > 0.6666:
+		# Top third: mix of green and yellow
+		var unhealthy_particles = particle_count - (health - (max_health * 2 / 3)) / (max_health / (3 * particle_count))
+		if particle_index < (particle_count - unhealthy_particles):
+			return color1  # Green
+		else:
+			return color2  # Yellow
+	elif health_ratio > 0.3333:
+		# Middle third: mix of yellow and red
+		var healthy_particles = (health - (max_health / 3)) / (max_health / (3 * particle_count))
+		if particle_index < healthy_particles:
+			return color2  # Yellow
+		else:
+			return color3  # Red
+	else:
+		# Bottom third: mostly red with some yellow
+		var yellow_particles = health / (max_health / (3 * particle_count))
+		if particle_index < yellow_particles:
+			return color2  # Yellow
+		else:
+			return color3  # Red
+
+func update_health_system():
+	# Update max health and clamp current health
+	max_health = 3 * particle_count
+	health = clamp(health, 0, max_health)
+	
+	# If health hasn't been initialized, set to max
+	if health == 0:
+		health = max_health
 
 func _draw():
 	# Draw boundary box
@@ -128,3 +179,12 @@ func set_gravity_enabled(enabled: bool):
 
 func set_bounce_factor(factor: float):
 	bounce_factor = factor
+
+func set_health(new_health: int):
+	health = clamp(new_health, 0, max_health)
+
+func get_health() -> int:
+	return health
+
+func get_max_health() -> int:
+	return max_health

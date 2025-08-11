@@ -8,6 +8,7 @@ class_name TestScene
 @onready var velocity_slider: HSlider
 @onready var count_slider: HSlider
 @onready var bounce_slider: HSlider
+@onready var health_slider: HSlider
 
 func _ready():
 	setup_game()
@@ -33,7 +34,7 @@ func setup_ui():
 	# Create UI panel
 	ui_panel = VBoxContainer.new()
 	ui_panel.position = Vector2(800, 50)
-	ui_panel.custom_minimum_size = Vector2(200, 250)
+	ui_panel.custom_minimum_size = Vector2(200, 300)
 	add_child(ui_panel)
 	
 	# Max velocity control
@@ -43,6 +44,10 @@ func setup_ui():
 	# Bounce factor control
 	create_label("Bounce Factor:")
 	bounce_slider = create_slider(0.0, 1.0, game.bounce_factor, _on_bounce_changed)
+	
+	# Health control
+	create_label("Health:")
+	health_slider = create_slider(0.0, float(game.get_max_health()), float(game.get_health()), _on_health_changed)
 	
 	# Particle count control
 	create_label("Particle Count:")
@@ -95,10 +100,17 @@ func _on_velocity_changed(value: float):
 func _on_bounce_changed(value: float):
 	game.set_bounce_factor(value)
 
+func _on_health_changed(value: float):
+	game.set_health(int(value))
+
 func _on_count_changed(value: float):
 	var new_count = int(value)
 	game.particle_count = new_count
 	game.setup_particles()  # Reinitialize with new count
+	
+	# Update health slider range when particle count changes
+	health_slider.max_value = float(game.get_max_health())
+	health_slider.value = float(game.get_health())
 
 func _on_gravity_toggled(pressed: bool):
 	game.set_gravity_enabled(pressed)
