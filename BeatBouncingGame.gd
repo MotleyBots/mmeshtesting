@@ -11,11 +11,11 @@ class_name SimpleBouncingGame
 @export var particle_color: Color = Color.WHITE
 @export var max_velocity: float = 400.0
 @export var bounce_factor: float = 0.8
-@export var emissive_strength: float = 0.0
+#@export var emissive_strength: float = 0.0
 
 var max_health: int
 var health: int
-var particle_material: StandardMaterial3D
+#var particle_material: StandardMaterial3D
 
 # Health-based colors
 var color1: Color = Color.GREEN     # Green (healthy)
@@ -57,19 +57,22 @@ func setup_multimesh():
 	quad_mesh.size = Vector2(particle_size, particle_size)
 	
 	# Create emissive material
-	particle_material = StandardMaterial3D.new()
-	particle_material.flags_unshaded = false
-	particle_material.flags_vertex_lighting = true
-	particle_material.emission_enabled = true
-	particle_material.emission = Color.WHITE
-	particle_material.emission_energy = emissive_strength
-	particle_material.albedo_color = Color.WHITE
+	#particle_material = StandardMaterial3D.new()
+	#particle_material.flags_unshaded = false
+	#particle_material.flags_vertex_lighting = true
+	#particle_material.emission_enabled = true
+	#particle_material.emission = Color.WHITE
+	#particle_material.emission_energy = emissive_strength
+	#particle_material.albedo_color = Color.WHITE
 	
 	# Apply material to mesh
-	quad_mesh.surface_set_material(0, particle_material)
+	#quad_mesh.surface_set_material(0, particle_material)
 	multimesh.mesh = quad_mesh
 	
 	multimesh_instance.multimesh = multimesh
+	
+	#Glow
+	multimesh_instance.self_modulate = Color(10,10,10,1)
 
 func setup_particles():
 	# Initialize particles with random positions and velocities
@@ -226,10 +229,10 @@ func set_gravity_enabled(enabled: bool):
 func set_bounce_factor(factor: float):
 	bounce_factor = factor
 
-func set_emissive_strength(strength: float):
-	emissive_strength = strength
-	if particle_material:
-		particle_material.emission_energy = strength
+#func set_emissive_strength(strength: float):
+	#emissive_strength = strength
+	#if particle_material:
+		#particle_material.emission_energy = strength
 
 func set_health(new_health: int):
 	health = clamp(new_health, 0, max_health)
