@@ -20,5 +20,6 @@ script = ExtResource("1_mncer")
 environment = SubResource("Environment_mncer")
 
 [node name="Icon" type="Sprite2D" parent="."]
-position = Vector2(924, 507)
+position = Vector2(900, 525)
+scale = Vector2(0.5, 0.5)
 texture = ExtResource("2_cguwc")

@@ -1,0 +1,24 @@
+[gd_scene load_steps=4 format=3 uid="uid://bop7en522wvfm"]
+
+[ext_resource type="Script" uid="uid://d3w7wtt0q7ep3" path="res://test_scene.gd" id="1_mncer"]
+[ext_resource type="Texture2D" uid="uid://db2du7ucxf2qt" path="res://icon.svg" id="2_cguwc"]
+
+[sub_resource type="Environment" id="Environment_mncer"]
+background_mode = 3
+glow_enabled = true
+
+[node name="TestScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_mncer")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_mncer")
+
+[node name="Icon" type="Sprite2D" parent="."]
+position = Vector2(924, 507)
+texture = ExtResource("2_cguwc")

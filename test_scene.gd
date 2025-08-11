@@ -9,6 +9,8 @@ class_name TestScene
 @onready var count_slider: HSlider
 @onready var bounce_slider: HSlider
 @onready var health_slider: HSlider
+@onready var emissive_slider: HSlider
+@onready var glow_slider: HSlider
 
 func _ready():
 	setup_game()
@@ -24,9 +26,7 @@ func setup_game():
 	game.particle_size = 6.0
 	game.particle_color = Color.CYAN
 	game.max_velocity = 400.0
-	game.bounce_factor = 1.0
-	#game.emissive_strength = 2.0
-	#game.multimesh_instance.self_modulate = Color(10,10,10,1)
+	game.bounce_factor = 0.8
 	
 	# Position game in center of screen
 	game.position = Vector2(50, 50)
@@ -36,7 +36,7 @@ func setup_ui():
 	# Create UI panel
 	ui_panel = VBoxContainer.new()
 	ui_panel.position = Vector2(800, 50)
-	ui_panel.custom_minimum_size = Vector2(200, 300)
+	ui_panel.custom_minimum_size = Vector2(200, 350)
 	add_child(ui_panel)
 	
 	# Max velocity control
@@ -45,7 +45,17 @@ func setup_ui():
 	
 	# Bounce factor control
 	create_label("Bounce Factor:")
-	bounce_slider = create_slider(0.0, 1.0, game.bounce_factor, _on_bounce_changed)
+	bounce_slider = create_slider(0.0, 2.0, game.bounce_factor, _on_bounce_changed)
+	
+	# Glow control
+	create_label("Glow Intensity:")
+	glow_slider = create_slider(1.0, 20.0, 1.0, _on_glow_changed)
+	
+	# Fade button
+	var fade_button = Button.new()
+	fade_button.text = "Fade to Normal"
+	fade_button.pressed.connect(_on_fade_pressed)
+	ui_panel.add_child(fade_button)
 	
 	# Health control
 	create_label("Health:")
@@ -101,6 +111,18 @@ func _on_velocity_changed(value: float):
 
 func _on_bounce_changed(value: float):
 	game.set_bounce_factor(value)
+
+func _on_glow_changed(value: float):
+	game.set_self_modulate_intensity(value)
+
+func _on_fade_pressed():
+	# Create a tween to fade over 3 seconds
+	var tween = create_tween()
+	var current_intensity = max(game.multimesh_instance.self_modulate.r, max(game.multimesh_instance.self_modulate.g, game.multimesh_instance.self_modulate.b))
+	tween.tween_method(game.set_self_modulate_intensity, current_intensity, 1.0, 3.0)
+	
+	# Update slider to match
+	tween.tween_callback(func(): glow_slider.value = 1.0)
 
 func _on_health_changed(value: float):
 	game.set_health(int(value))
