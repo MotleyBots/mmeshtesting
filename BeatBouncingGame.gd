@@ -11,9 +11,11 @@ class_name SimpleBouncingGame
 @export var particle_color: Color = Color.WHITE
 @export var max_velocity: float = 400.0
 @export var bounce_factor: float = 0.8
+@export var emissive_strength: float = 0.0
 
 var max_health: int
 var health: int
+var particle_material: StandardMaterial3D
 
 # Health-based colors
 var color1: Color = Color.GREEN     # Green (healthy)
@@ -36,6 +38,11 @@ func _ready():
 	setup_particles()
 	update_health_system()
 
+func _process(delta):
+	manage_health()
+	update_particles(delta)
+	update_multimesh()
+
 func setup_multimesh():
 	# Create MultiMeshInstance2D with colored quads
 	multimesh_instance = MultiMeshInstance2D.new()
@@ -48,6 +55,18 @@ func setup_multimesh():
 	
 	var quad_mesh = QuadMesh.new()
 	quad_mesh.size = Vector2(particle_size, particle_size)
+	
+	# Create emissive material
+	particle_material = StandardMaterial3D.new()
+	particle_material.flags_unshaded = false
+	particle_material.flags_vertex_lighting = true
+	particle_material.emission_enabled = true
+	particle_material.emission = Color.WHITE
+	particle_material.emission_energy = emissive_strength
+	particle_material.albedo_color = Color.WHITE
+	
+	# Apply material to mesh
+	quad_mesh.surface_set_material(0, particle_material)
 	multimesh.mesh = quad_mesh
 	
 	multimesh_instance.multimesh = multimesh
@@ -101,42 +120,6 @@ func set_particle_count(new_count: int):
 	
 	# Update health system
 	update_health_system()
-
-func _process(delta):
-	manage_health()
-	update_particles(delta)
-	update_multimesh()
-
-#func manage_health() -> void:
-	#if health < particle_count:
-		#set_particle_count(health)
-#
-#func set_particle_count(new_count: int):
-	#if new_count == particle_count:
-		#return
-		#
-	#var old_count = particle_count
-	#particle_count = new_count
-	#
-	## Update multimesh instance count
-	#if multimesh_instance and multimesh_instance.multimesh:
-		#multimesh_instance.multimesh.instance_count = particle_count
-	#
-	#if new_count > old_count:
-		## Adding particles - preserve existing ones and add new ones
-		#for i in range(old_count, new_count):
-			#var particle_data = ParticleData.new(
-				#Vector2(randf_range(particle_size, box_size.x - particle_size),
-						#randf_range(particle_size, box_size.y - particle_size)),
-				#Vector2(randf_range(-100, 100), randf_range(-100, 100))
-			#)
-			#particles_data.append(particle_data)
-	#elif new_count < old_count:
-		## Removing particles - preserve the first new_count particles
-		#particles_data.resize(new_count)
-	#
-	## Update health system
-	#update_health_system()
 
 func update_particles(delta):
 	# Update physics for each particle
@@ -242,6 +225,11 @@ func set_gravity_enabled(enabled: bool):
 
 func set_bounce_factor(factor: float):
 	bounce_factor = factor
+
+func set_emissive_strength(strength: float):
+	emissive_strength = strength
+	if particle_material:
+		particle_material.emission_energy = strength
 
 func set_health(new_health: int):
 	health = clamp(new_health, 0, max_health)
