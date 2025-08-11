@@ -71,16 +71,72 @@ func setup_particles():
 	# Update health system when particle count changes
 	update_health_system()
 
+func manage_health() -> void:
+	if health < particle_count:
+		set_particle_count(health)
+
+func set_particle_count(new_count: int):
+	if new_count == particle_count:
+		return
+		
+	var old_count = particle_count
+	particle_count = new_count
+	
+	# Update multimesh instance count
+	if multimesh_instance and multimesh_instance.multimesh:
+		multimesh_instance.multimesh.instance_count = particle_count
+	
+	if new_count > old_count:
+		# Adding particles - preserve existing ones and add new ones
+		for i in range(old_count, new_count):
+			var particle_data = ParticleData.new(
+				Vector2(randf_range(particle_size, box_size.x - particle_size),
+						randf_range(particle_size, box_size.y - particle_size)),
+				Vector2(randf_range(-100, 100), randf_range(-100, 100))
+			)
+			particles_data.append(particle_data)
+	elif new_count < old_count:
+		# Removing particles - preserve the first new_count particles
+		particles_data.resize(new_count)
+	
+	# Update health system
+	update_health_system()
+
 func _process(delta):
 	manage_health()
 	update_particles(delta)
 	update_multimesh()
 
-func manage_health() -> void:
-	if health < particle_count:
-		particle_count = health
-		update_health_system()
-		setup_particles()
+#func manage_health() -> void:
+	#if health < particle_count:
+		#set_particle_count(health)
+#
+#func set_particle_count(new_count: int):
+	#if new_count == particle_count:
+		#return
+		#
+	#var old_count = particle_count
+	#particle_count = new_count
+	#
+	## Update multimesh instance count
+	#if multimesh_instance and multimesh_instance.multimesh:
+		#multimesh_instance.multimesh.instance_count = particle_count
+	#
+	#if new_count > old_count:
+		## Adding particles - preserve existing ones and add new ones
+		#for i in range(old_count, new_count):
+			#var particle_data = ParticleData.new(
+				#Vector2(randf_range(particle_size, box_size.x - particle_size),
+						#randf_range(particle_size, box_size.y - particle_size)),
+				#Vector2(randf_range(-100, 100), randf_range(-100, 100))
+			#)
+			#particles_data.append(particle_data)
+	#elif new_count < old_count:
+		## Removing particles - preserve the first new_count particles
+		#particles_data.resize(new_count)
+	#
+	## Update health system
+	#update_health_system()
 
 func update_particles(delta):
 	# Update physics for each particle
@@ -167,7 +223,7 @@ func update_health_system():
 	health = clamp(health, 0, max_health)
 	
 	# If health hasn't been initialized, set to max
-	if not health:
+	if health == 0:
 		health = max_health
 
 func _draw():

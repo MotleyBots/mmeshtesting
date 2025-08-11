@@ -105,8 +105,7 @@ func _on_health_changed(value: float):
 
 func _on_count_changed(value: float):
 	var new_count = int(value)
-	game.particle_count = new_count
-	game.setup_particles()  # Reinitialize with new count
+	game.set_particle_count(new_count)
 	
 	# Update health slider range when particle count changes
 	health_slider.max_value = float(game.get_max_health())
