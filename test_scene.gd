@@ -63,7 +63,7 @@ func setup_ui():
 	
 	# Particle count control
 	create_label("Particle Count:")
-	count_slider = create_slider(10.0, 200.0, game.particle_count, _on_count_changed)
+	count_slider = create_slider(10.0, 20000.0, game.particle_count, _on_count_changed)
 	
 	# Gravity toggle
 	create_label("Gravity:")
